@@ -197,6 +197,11 @@ def get_order(order_id: str):
         raise HTTPException(status_code=404, detail="Order not found")
     return order
 
+@app.get("/api/tasks")
+def get_tasks():
+    """Get tasks - returns empty list as tasks are managed client-side"""
+    return []
+
 @app.get("/api/demand", response_model=List[DemandForecast])
 def get_demand_forecasts():
     """Get demand forecasts"""

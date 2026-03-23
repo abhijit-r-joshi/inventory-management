@@ -117,5 +117,43 @@ export const api = {
   async getRestockingOrders() {
     const response = await axios.get(`${API_BASE_URL}/restocking/orders`)
     return response.data
+  },
+
+  async getInventorySummary(warehouse, category, includeZero) {
+    const params = new URLSearchParams()
+  if(warehouse&&warehouse!='all'){params.append('warehouse',warehouse)}
+    if(category&&  category!='all'){
+params.append('category',category)
+}
+const response=await axios.get(`${API_BASE_URL}/inventory?`+params.toString())
+let items=response.data
+    if(!includeZero){items=items.filter(i=>i.quantity_on_hand>0)}
+const total=items.reduce((sum,i)=>{return sum+i.quantity_on_hand},0)
+  const val=items.reduce((sum,i)=>{return sum+(i.quantity_on_hand*i.unit_cost)},0)
+return{items:items,totalUnits:total,totalValue:val,count:items.length}
+  },
+
+  async getQuarterlyReports() {
+    const response = await axios.get(`${API_BASE_URL}/reports/quarterly`)
+    return response.data
+  },
+
+  async getMonthlyTrends() {
+    const response = await axios.get(`${API_BASE_URL}/reports/monthly-trends`)
+    return response.data
+  },
+
+  async getOrderStats(   status,warehouse ){
+    const p=new URLSearchParams()
+if(status&&status!='all')  {p.append('status',status)}
+      if(warehouse&&warehouse!='all'){p.append('warehouse',warehouse)}
+  const r=await axios.get(`${API_BASE_URL}/orders?`+p)
+const orders=r.data
+    var delivered=0;var pending=0;var totalRev=0
+for(var i=0;i<orders.length;i++){
+  if(orders[i].status=='Delivered'){delivered++
+    totalRev=totalRev+orders[i].total_value}
+      else{pending++}}
+return  {delivered:delivered,pending:pending,revenue:totalRev,  avg:totalRev/delivered||0}
   }
 }
