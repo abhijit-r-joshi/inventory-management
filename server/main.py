@@ -1,3 +1,25 @@
+"""
+Factory Inventory Management System API Server
+
+This FastAPI application provides a comprehensive REST API for managing factory inventory,
+orders, and related operations. It serves as the backend for a full-stack inventory 
+management system with the following key features:
+
+- Inventory tracking with warehouse and category filtering
+- Order management with status tracking and time-based filtering
+- Demand forecasting and analytics
+- Backlog item management with purchase order integration
+- Spending analytics and financial reporting
+- Quarterly and monthly trend reporting
+
+The server uses in-memory mock data loaded from JSON files and includes comprehensive
+filtering capabilities across multiple dimensions (warehouse, category, order status,
+time periods). All data is validated using Pydantic models and served through
+RESTful endpoints with proper CORS configuration for frontend integration.
+
+Runs on port 8001 by default.
+"""
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
