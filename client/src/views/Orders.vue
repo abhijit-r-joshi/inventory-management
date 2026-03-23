@@ -74,12 +74,49 @@
           </table>
         </div>
       </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Submitted Restocking Orders</h3>
+        </div>
+        <div v-if="restockingOrders.length === 0" class="restocking-empty">
+          No restocking orders submitted yet.
+        </div>
+        <div v-else class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Order Number</th>
+                <th>Items</th>
+                <th>Status</th>
+                <th>Order Date</th>
+                <th>Expected Delivery</th>
+                <th>Total Value</th>
+                <th>Lead Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="rOrder in restockingOrders" :key="rOrder.order_number">
+                <td><strong>{{ rOrder.order_number }}</strong></td>
+                <td>{{ rOrder.items ? rOrder.items.length : 0 }} items</td>
+                <td>
+                  <span class="badge warning">{{ rOrder.status }}</span>
+                </td>
+                <td>{{ formatDate(rOrder.order_date) }}</td>
+                <td>{{ formatDate(rOrder.expected_delivery) }}</td>
+                <td><strong>{{ currencySymbol }}{{ (rOrder.total_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</strong></td>
+                <td>{{ rOrder.lead_time_days }} days</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
@@ -95,6 +132,8 @@ export default {
     const loading = ref(true)
     const error = ref(null)
     const orders = ref([])
+    const restockingOrders = ref([])
+    let restockingPollInterval = null
 
     // Use shared filters
     const {
@@ -153,7 +192,25 @@ export default {
       })
     }
 
-    onMounted(loadOrders)
+    const loadRestockingOrders = async () => {
+      try {
+        restockingOrders.value = await api.getRestockingOrders()
+      } catch (err) {
+        console.error('Failed to load restocking orders:', err)
+      }
+    }
+
+    onMounted(() => {
+      loadOrders()
+      loadRestockingOrders()
+      restockingPollInterval = setInterval(loadRestockingOrders, 10000)
+    })
+
+    onUnmounted(() => {
+      if (restockingPollInterval) {
+        clearInterval(restockingPollInterval)
+      }
+    })
 
     return {
       t,
@@ -165,7 +222,8 @@ export default {
       formatDate,
       currencySymbol,
       translateProductName,
-      translateCustomerName
+      translateCustomerName,
+      restockingOrders
     }
   }
 }
@@ -275,5 +333,13 @@ export default {
 .item-meta {
   font-size: 0.813rem;
   color: #64748b;
+}
+
+.restocking-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  font-style: italic;
 }
 </style>
