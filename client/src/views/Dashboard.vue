@@ -637,6 +637,7 @@ export default {
       const { currentLocale } = useI18n()
       const locale = currentLocale.value === 'ja' ? 'ja-JP' : 'en-US'
       const date = new Date(dateString)
+      if (isNaN(date.getTime())) return '-'
       return date.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })
     }
 
